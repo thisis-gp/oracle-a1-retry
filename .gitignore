@@ -1,0 +1,5 @@
+# Never commit the private key — it goes in as a GitHub Actions secret
+oci_api_key.pem
+*.pem
+success.marker
+install.ps1

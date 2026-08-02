@@ -1,0 +1,10 @@
+#cloud-config
+users:
+  - name: opc
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIItqgIfZnPhmFnsd4C16Ytt8yiBuSNGuLTkY+b1SBuVe backend-vm-free
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: wheel
+    shell: /bin/bash
+ssh_authorized_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIItqgIfZnPhmFnsd4C16Ytt8yiBuSNGuLTkY+b1SBuVe backend-vm-free
