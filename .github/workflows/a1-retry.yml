@@ -2,16 +2,22 @@ name: A1 retry
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # every 5 minutes (GitHub's minimum)
-  workflow_dispatch: {}       # allow manual runs from the Actions tab
+    - cron: '17 * * * *'   # hourly backstop, in case the self-dispatch chain ever breaks
+  workflow_dispatch: {}       # manual + self re-dispatch
 
 permissions:
-  actions: write   # to disable this workflow once we succeed
+  actions: write   # to disable on success and re-dispatch to keep running
   contents: read
+
+# Only one launch loop at a time (avoids parallel jobs hammering OCI -> 429s).
+concurrency:
+  group: a1-launch
+  cancel-in-progress: false
 
 jobs:
   launch:
     runs-on: ubuntu-latest
+    timeout-minutes: 355   # under GitHub's 6h job cap; the loop self-limits below this
     steps:
       - uses: actions/checkout@v4
 
@@ -32,8 +38,8 @@ jobs:
           EOF
           chmod 600 ~/.oci/key.pem ~/.oci/config
 
-      - name: Attempt launch
-        run: bash launch_a1_once.sh
+      - name: Launch loop (runs ~5h40m, attempting every 60s)
+        run: bash launch_a1_loop.sh
 
       - name: Notify + stop on success
         if: ${{ hashFiles('success.marker') != '' }}
@@ -47,5 +53,10 @@ jobs:
               -d chat_id="${TG_CHAT}" \
               -d text="✅ Oracle A1 backend-vm-a1 launched in ap-hyderabad-1. Check the OCI console." >/dev/null || true
           fi
-          # Stop retrying now that we have it.
           gh workflow disable "${{ github.workflow }}" || true
+
+      - name: Keep running (re-dispatch if not done yet)
+        if: ${{ hashFiles('success.marker') == '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run "${{ github.workflow }}" || true
