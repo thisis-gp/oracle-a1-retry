@@ -44,11 +44,11 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     echo "[$ts] #$attempt SUCCESS - launch accepted"; echo "$out"
     echo "success" > success.marker; exit 0
   elif echo "$out" | grep -qiE "OutOfCapacity|Out of host capacity|out of capacity"; then
-    echo "[$ts] #$attempt out of capacity; sleep 60"; sleep 60
+    echo "[$ts] #$attempt out of capacity; sleep 90"; sleep 90
   elif echo "$out" | grep -qiE "TooManyRequests|Too many requests|\b429\b"; then
-    echo "[$ts] #$attempt rate limited; sleep 120"; sleep 120
+    echo "[$ts] #$attempt rate limited; sleep 300"; sleep 300
   else
-    echo "[$ts] #$attempt transient error; sleep 60:"; echo "$out"; sleep 60
+    echo "[$ts] #$attempt transient error; sleep 90:"; echo "$out"; sleep 90
   fi
 done
 
